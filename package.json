@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "lenis": "github:darkroomengineering/lenis"
+  }
+}

@@ -1,0 +1,35 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-mono: 'Courier Prime', ui-monospace, monospace;
+  --font-cousine: 'Cousine', ui-monospace, monospace;
+  --font-cute: 'Cute Font', cursive;
+
+  --color-bg: #f3e9e3;
+  --color-ink: #1a0a2e;
+  --color-text: #38342e;
+  --color-text-reverse: #eae8e8;
+  --color-pink: #fc5699;
+  --color-cta: #ff2d9b;
+  --color-purple: #5b4a8a;
+  --color-purple-muted: #6b4f7a;
+  --color-green: #6ebb43;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  font-family: var(--font-mono);
+  /* Figma text nodes all use leading-[normal]; match the font's own metrics */
+  line-height: normal;
+  min-height: 100svh;
+}
+
+#root {
+  width: 100%;
+  min-height: 100svh;
+}
