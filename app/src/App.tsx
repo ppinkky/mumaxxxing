@@ -7,8 +7,10 @@ import IntroScreen from './screens/IntroScreen'
 import InputScreen from './screens/InputScreen'
 import LoadingScreen from './screens/LoadingScreen'
 import PrintingScreen from './screens/PrintingScreen'
+import SafetyScreen from './screens/SafetyScreen'
 import SlipScreen from './screens/SlipScreen'
-import { BUFFS, type BuffKey, type Screen } from './types'
+import { BUFFS, type BuffKey, type LoadoutItem, type Screen } from './types'
+import { isSensitiveSituation, selectLoadout } from './logic'
 
 function randomLuckyNumbers(): number[] {
   const numbers = new Set<number>()
@@ -32,6 +34,9 @@ export default function App() {
   const [situation, setSituation] = useState('')
   const [buffs, setBuffs] = useState<BuffKey[]>([])
   const [luckyNumbers, setLuckyNumbers] = useState<number[]>([])
+  const [loadout, setLoadout] = useState<LoadoutItem[]>([])
+  const [includeSituation, setIncludeSituation] = useState(false)
+  const [generalRitual, setGeneralRitual] = useState(false)
   const reduceMotion = useReducedMotion()
 
   /** Move to another screen; direction drives which way the transition slides. */
@@ -44,6 +49,9 @@ export default function App() {
     setSituation('')
     setBuffs([])
     setLuckyNumbers([])
+    setLoadout([])
+    setIncludeSituation(false)
+    setGeneralRitual(false)
     go('intro', -1)
   }
 
@@ -56,8 +64,7 @@ export default function App() {
   const selectedBuffDefs = BUFFS.filter((b) => buffs.includes(b.key))
   const buffPointsTotal = selectedBuffDefs.reduce((sum, b) => sum + b.points, 0)
   const situationScore = scoreFromText(situation)
-  const powerLevel = Math.min(100, 58 + (situationScore % 20) + buffPointsTotal)
-
+  const powerLevel = Math.min(100, 58 + buffPointsTotal)
   return (
     <PhoneShell>
       <AnimatePresence mode="wait" custom={direction} initial={false}>
@@ -78,8 +85,13 @@ export default function App() {
           {screen === 'input' && (
             <InputScreen
               situation={situation}
-              onChangeSituation={setSituation}
-              onSubmit={() => go('loading')}
+              onChangeSituation={(value) => {
+                setGeneralRitual(false)
+                setSituation(value)
+              }}
+              onSubmit={() =>
+                isSensitiveSituation(situation) ? go('safety') : go('loading')
+              }
             />
           )}
 
@@ -99,6 +111,11 @@ export default function App() {
             <PrintingScreen
               onDone={() => {
                 setLuckyNumbers(randomLuckyNumbers())
+                setLoadout(
+                  generalRitual
+                    ? selectLoadout('', [])
+                    : selectLoadout(situation, buffs),
+                )
                 go('slip')
               }}
             />
@@ -115,7 +132,20 @@ export default function App() {
                   : BUFFS.filter((b) => b.key === 'General')
               }
               powerLevel={powerLevel}
+              loadout={loadout}
+              includeSituation={includeSituation}
+              onIncludeSituationChange={setIncludeSituation}
               onRestart={restart}
+            />
+          )}
+          {screen === 'safety' && (
+            <SafetyScreen
+              situation={situation}
+              onTryAgain={restart}
+              onContinue={() => {
+                setGeneralRitual(true)
+                go('loading')
+              }}
             />
           )}
         </motion.div>

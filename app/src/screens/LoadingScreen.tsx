@@ -7,6 +7,7 @@ import {
 } from 'motion/react'
 import { useEffect } from 'react'
 import VendingMachine from '../components/VendingMachine'
+import LoadingCopy from '../components/LoadingCopy'
 import {
   BAR_FILL_EASE,
   BAR_FILL_TIMES,
@@ -65,10 +66,7 @@ export default function LoadingScreen({ onDone }: { onDone: () => void }) {
           bodyContent={
             <div className="flex flex-col items-start gap-2.5">
               <div className="w-full text-center font-cute text-2xl leading-tight text-text-reverse uppercase">
-                <p>Applying good energy...</p>
-                <p>Consulting the universe...</p>
-                <p>Cross-checking grandma&rsquo;s advice...</p>
-                <p>This might work...</p>
+                <LoadingCopy />
               </div>
               <motion.div
                 className="flex items-center gap-3"

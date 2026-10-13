@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import CtaButton from '../components/CtaButton'
 
-const MAX_LENGTH = 280
+const MAX_LENGTH = 140
 
 interface InputScreenProps {
   situation: string

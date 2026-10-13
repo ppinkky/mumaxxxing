@@ -1,9 +1,10 @@
 import { motion, useReducedMotion } from 'motion/react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import CtaButton from '../components/CtaButton'
 import { slipCardMotion, slipCtaMotion } from '../figmaMotion'
 import divider from '../assets/icons/divider.svg'
-import { LOADOUT, type BuffDef } from '../types'
+import type { BuffDef, LoadoutItem } from '../types'
+import { shareReceipt } from '../utils/receipt'
 
 const Divider = () => (
   <div className="w-full shrink-0">
@@ -17,6 +18,9 @@ interface SlipScreenProps {
   luckyNumbers: number[]
   buffs: BuffDef[]
   powerLevel: number
+  loadout: LoadoutItem[]
+  includeSituation: boolean
+  onIncludeSituationChange: (value: boolean) => void
   onRestart: () => void
 }
 
@@ -26,15 +30,21 @@ export default function SlipScreen({
   luckyNumbers,
   buffs,
   powerLevel,
+  loadout,
+  includeSituation,
+  onIncludeSituationChange,
   onRestart,
 }: SlipScreenProps) {
-  const [saved, setSaved] = useState(false)
+  const [shared, setShared] = useState(false)
+  const [error, setError] = useState('')
+  const receiptRef = useRef<HTMLDivElement>(null)
   const reduceMotion = useReducedMotion()
   const still = reduceMotion ? {} : undefined
 
   return (
     <div className="flex w-full flex-1 flex-col items-center gap-6 bg-bg px-3 py-8">
       <motion.div
+        ref={receiptRef}
         className="flex w-full max-w-[276px] shrink-0 flex-col items-start overflow-clip bg-white"
         {...(still ?? slipCardMotion)}
       >
@@ -74,7 +84,7 @@ export default function SlipScreen({
           <p className="text-[8px] font-bold whitespace-nowrap text-[#1a1a1a]">
             YOUR LUCK LOADOUT
           </p>
-          {LOADOUT.map((item) => (
+          {loadout.map((item) => (
             <div key={item.title} className="flex w-full flex-col gap-[3px]">
               <p className="w-full text-[6px] text-[#333]">{item.origin}</p>
               <div className="flex w-full items-start justify-between text-[10px] text-[#333]">
@@ -129,12 +139,41 @@ export default function SlipScreen({
         className="flex w-full shrink-0 flex-col items-start gap-3"
         {...(still ?? slipCtaMotion)}
       >
+        <label className="flex items-start gap-2 px-2 text-xs text-[#333]">
+          <input
+            type="checkbox"
+            checked={includeSituation}
+            onChange={(event) => onIncludeSituationChange(event.target.checked)}
+            className="mt-0.5 accent-cta"
+          />
+          <span>Include my text (visible when shared)</span>
+        </label>
         <CtaButton
-          onClick={() => setSaved(true)}
+          onClick={async () => {
+            try {
+              setError('')
+              if (!receiptRef.current) {
+                throw new Error('Receipt preview is not available for sharing.')
+              }
+              await shareReceipt(receiptRef.current)
+              setShared(true)
+            } catch (shareError) {
+              setError(
+                shareError instanceof Error
+                  ? shareError.message
+                  : 'Receipt sharing failed. The on-screen receipt is still available.',
+              )
+            }
+          }}
           className="font-cousine whitespace-nowrap"
         >
-          {saved ? 'Buff Saved ✓' : 'Save Your Buff'}
+          {shared ? 'Receipt Shared ✓' : 'Share Receipt'}
         </CtaButton>
+        {error && (
+          <p className="w-full text-center text-xs text-cta" role="alert">
+            {error}
+          </p>
+        )}
         <div className="flex w-full items-center justify-center">
           <button
             type="button"

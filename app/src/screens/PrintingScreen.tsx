@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react'
 import { useEffect } from 'react'
 import VendingMachine from '../components/VendingMachine'
+import LoadingCopy from '../components/LoadingCopy'
 import { FIGMA_TIMELINE_S, headerMotion } from '../figmaMotion'
 
 /** Let the 2s Figma timeline finish, then hold a beat before the slip. */
@@ -31,10 +32,7 @@ export default function PrintingScreen({ onDone }: { onDone: () => void }) {
         tallReceipt
         bodyContent={
           <div className="w-full text-center font-cute text-2xl leading-tight text-text-reverse uppercase">
-            <p>Applying good energy...</p>
-            <p>Consulting the universe...</p>
-            <p>Cross-checking grandma&rsquo;s advice...</p>
-            <p>This might work...</p>
+            <LoadingCopy />
           </div>
         }
         receipt={
