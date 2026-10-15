@@ -4,6 +4,6 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/mumaxxxing/',
+  base: process.env.NETLIFY === 'true' ? '/' : '/mumaxxxing/',
   plugins: [react(), tailwindcss()],
 })
