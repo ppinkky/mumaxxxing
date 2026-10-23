@@ -17,24 +17,25 @@ import {
   statusPanelMotion,
 } from '../figmaMotion'
 
-/** Width of the bar track, i.e. a full bar. */
+/** Max width of the bar track; it shrinks to fit narrow machines. */
 const TRACK_W = 223
+/** The Figma bar starts as a 1px sliver of the full track. */
+const START_PCT = 100 / TRACK_W
 /** Beat to hold on the finished bar before moving on. */
 const HOLD_AFTER_MS = 400
 
 export default function LoadingScreen({ onDone }: { onDone: () => void }) {
   const reduceMotion = useReducedMotion()
-  const fill = useMotionValue(reduceMotion ? TRACK_W : 1)
-  const percent = useTransform(fill, (w) =>
-    `${Math.round((w / TRACK_W) * 100)}%`,
-  )
+  const progress = useMotionValue(reduceMotion ? 100 : START_PCT)
+  const fill = useTransform(progress, (p) => `${p}%`)
+  const percent = useTransform(progress, (p) => `${Math.round(p)}%`)
 
   useEffect(() => {
     if (reduceMotion) {
       const t = setTimeout(onDone, HOLD_AFTER_MS)
       return () => clearTimeout(t)
     }
-    const controls = animate(fill, [1, 1, TRACK_W, TRACK_W], {
+    const controls = animate(progress, [START_PCT, START_PCT, 100, 100], {
       duration: FIGMA_TIMELINE_S,
       times: BAR_FILL_TIMES,
       ease: BAR_FILL_EASE,
@@ -64,15 +65,15 @@ export default function LoadingScreen({ onDone }: { onDone: () => void }) {
         </motion.p>
         <VendingMachine
           bodyContent={
-            <div className="flex flex-col items-start gap-2.5">
+            <div className="flex w-full flex-col items-start gap-2.5">
               <div className="w-full text-center font-cute text-2xl leading-tight text-text-reverse uppercase">
                 <LoadingCopy />
               </div>
               <motion.div
-                className="flex items-center gap-3"
+                className="flex w-full items-center justify-center gap-3"
                 {...(still ?? progressRowMotion)}
               >
-                <div className="h-4 w-[223px] overflow-clip rounded-md border border-text bg-white">
+                <div className="h-4 min-w-0 max-w-[223px] flex-1 overflow-clip rounded-md border border-text bg-white">
                   <motion.div
                     className="h-full rounded bg-green"
                     style={{ width: fill }}

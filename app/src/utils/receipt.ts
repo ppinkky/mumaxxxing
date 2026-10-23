@@ -32,9 +32,12 @@ export async function shareReceipt(receipt: HTMLElement): Promise<void> {
 async function createReceiptBlob(receipt: HTMLElement): Promise<Blob> {
   const clone = receipt.cloneNode(true) as HTMLElement
   inlineStyles(receipt, clone)
+  await inlineImages(clone)
   clone.style.transform = 'none'
 
-  const { width, height } = receipt.getBoundingClientRect()
+  // Layout size, not on-screen size, so page zoom and transforms don't skew the canvas
+  const width = receipt.offsetWidth
+  const height = receipt.offsetHeight
   const scale = 3
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="${width * scale}" height="${height * scale}" viewBox="0 0 ${width} ${height}">
@@ -77,4 +80,31 @@ function inlineStyles(source: HTMLElement, target: HTMLElement): void {
       inlineStyles(sourceChild, targetChild)
     }
   }
+}
+
+async function inlineImages(root: HTMLElement): Promise<void> {
+  const images = Array.from(root.querySelectorAll('img'))
+  await Promise.all(
+    images.map(async (image) => {
+      const response = await fetch(image.src)
+      if (!response.ok) {
+        throw new Error('Receipt image could not be loaded for sharing.')
+      }
+      const blob = await response.blob()
+      image.src = await blobToDataUrl(blob)
+    }),
+  )
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () =>
+      typeof reader.result === 'string'
+        ? resolve(reader.result)
+        : reject(new Error('Receipt image could not be prepared for sharing.'))
+    reader.onerror = () =>
+      reject(new Error('Receipt image could not be prepared for sharing.'))
+    reader.readAsDataURL(blob)
+  })
 }
