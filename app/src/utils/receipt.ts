@@ -43,8 +43,7 @@ async function createReceiptBlob(receipt: HTMLElement): Promise<Blob> {
       </foreignObject>
     </svg>
   `
-  const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
-  const svgUrl = URL.createObjectURL(svgBlob)
+  const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
   const image = new Image()
   image.src = svgUrl
   await image.decode()
@@ -54,11 +53,9 @@ async function createReceiptBlob(receipt: HTMLElement): Promise<Blob> {
   canvas.height = height * scale
   const context = canvas.getContext('2d')
   if (!context) {
-    URL.revokeObjectURL(svgUrl)
     throw new Error('Receipt image could not be created in this browser.')
   }
   context.drawImage(image, 0, 0, canvas.width, canvas.height)
-  URL.revokeObjectURL(svgUrl)
 
   return new Promise<Blob>((resolve, reject) =>
     canvas.toBlob(
